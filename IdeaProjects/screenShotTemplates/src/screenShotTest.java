@@ -30,7 +30,7 @@ public class screenShotTest {
     @BeforeClass
     public static void setUp() throws IOException {
 
-        File file = new File("/home/chrx/IdeaProjects/screenShotTemplates/src/screenConfig.properties");
+        File file = new File("/home/chrx/IdeaProjects/screenShotTemplates/src/screenConfig.prop");
         FileInputStream fileInput = new FileInputStream(file);
 
         Properties prop = new Properties();
@@ -85,7 +85,7 @@ public class screenShotTest {
     @AfterClass
     public static void tearDown(){
 
-        //Comments 
+        //Comments
         driver.quit();
     }
 
