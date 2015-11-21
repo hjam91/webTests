@@ -1,11 +1,9 @@
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.output.StringBuilderWriter;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.*;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
-import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.testng.annotations.AfterClass;
@@ -15,7 +13,6 @@ import org.testng.annotations.Test;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -26,19 +23,17 @@ import java.util.concurrent.TimeUnit;
 public class screenShotTest {
 
     static WebDriver driver;
+    static String URL ;
+    static Properties prop;
+
+
 
     @BeforeClass
     public static void setUp() throws IOException {
 
-        File file = new File("/home/chrx/IdeaProjects/screenShotTemplates/src/screenConfig.prop");
-        FileInputStream fileInput = new FileInputStream(file);
-
-        Properties prop = new Properties();
-        prop.load(fileInput);
-        fileInput.close();
-
+        prop = loadProp();
+        URL = prop.getProperty("URL");
         String BROWSER = prop.getProperty("browser");
-        String URL = prop.getProperty("URL");
 
         if (prop.getProperty("device").equals("mobile")) {
             String device = "?$DEVICE$=mobile-touch";
@@ -47,7 +42,7 @@ public class screenShotTest {
 
         if (BROWSER.equals("chrome")) {
 
-            System.setProperty("webdriver.chrome.driver", "/home/chrx/chromedriver");
+            System.setProperty("webdriver.chrome.driver", prop.getProperty("chromeDriverLocation"));
             driver = new ChromeDriver();
 
         } else if (BROWSER.equals("IE")) {
@@ -57,31 +52,65 @@ public class screenShotTest {
         } else
             driver = new FirefoxDriver();
 
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
-        driver.manage().window().setSize(new Dimension(400, 3000));
-        driver.navigate().to(URL);
+
+
+        driver.manage().timeouts().implicitlyWait(20000, TimeUnit.MILLISECONDS);
+        //driver.manage().timeouts().pageLoadTimeout(15, TimeUnit.SECONDS);
+       driver.manage().window().maximize();
+        // driver.manage().window().setSize(new Dimension(400, 3000));
+//        driver.get(URL);
+       //    URL = prop.getProperty("URL");
+    //    driver.navigate().to(URL);
     }
 
         @Test
-        public void screenCaptureTest() throws IOException {
+        public static void screenCaptureTest() throws IOException {
 
+            // This part is to read data from file
+            String ID;
+            System.out.println("0");
 
+            File testDataSrc = new File(prop.getProperty("testDataLocation"));
+            FileInputStream testData = new FileInputStream(testDataSrc);
+            XSSFWorkbook wb = new XSSFWorkbook(testData);
+            XSSFSheet sheet1 = wb.getSheetAt(0);
 
-            driver.get("");
+            File newPath = new File(prop.getProperty("ScreenshotLocation"));
+            String templateName;
 
-            // Screenshot of File
-            File scrFile = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
-            File newPath = new File("/home/chrx/test1/");
+            for(int i=1; i < 7; i++) {
 
-            // Copy folder to new Path
-            FileUtils.copyFile(scrFile, new File("/home/chrx/test1/screenshot.png"));
+                ID = sheet1.getRow(i).getCell(1).getStringCellValue();
+                driver.get(URL +"/id/"+ ID);
 
-           // Open the folder of screenshots
+                // Screenshot of File
+                File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+
+                // Copy folder to new Path
+
+                templateName = sheet1.getRow(i).getCell(0).getStringCellValue();
+                FileUtils.copyFile(scrFile, new File(newPath + "/" +templateName +".png"));
+                System.out.println(newPath);
+                System.out.println("Screenshot of :" + "/" + templateName +" Done." );
+
+            }
+
+            // Open the folder of screenshots
             Desktop.getDesktop().open(newPath);
+
 
         }
 
+    public static Properties loadProp() throws IOException {
+
+        File file = new File("/home/chrx/IdeaProjects/screenShotTemplates/src/screenConfig.prop");
+        FileInputStream fileInput = new FileInputStream(file);
+        Properties prop = new Properties();
+        prop.load(fileInput);
+        fileInput.close();
+
+        return prop;
+    }
     @AfterClass
     public static void tearDown(){
 
