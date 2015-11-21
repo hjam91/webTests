@@ -67,7 +67,7 @@ public class screenShotTest {
         public void screenCaptureTest() throws IOException {
 
 
-            
+
             driver.get("");
 
             // Screenshot of File
@@ -84,6 +84,8 @@ public class screenShotTest {
 
     @AfterClass
     public static void tearDown(){
+
+        //Comments 
         driver.quit();
     }
 
