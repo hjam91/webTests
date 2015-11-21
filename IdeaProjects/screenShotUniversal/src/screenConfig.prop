@@ -1,0 +1,7 @@
+URL=http://www.etsy.com
+browser=chrome
+device=desktop
+testDataLocation=/home/chrx/IdeaProjects/screenShotUniversal/src/dataUniversal.xlsx
+chromeDriverLocation= /home/chrx/chromedriver
+IEDriverLocation=
+ScreenshotLocation=/home/chrx/resultScreenshotsETSY/
