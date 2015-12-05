@@ -1,5 +1,3 @@
-package test.java.com.mycompany.app;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -34,8 +32,6 @@ public class screenShotTest {
     static String URL ;
     static Properties prop;
     static StringBuilder result;
-
-
 
 
 
@@ -98,10 +94,10 @@ public class screenShotTest {
                 .append("<h1>MPS3 Ad Testing Results </h1>")
                 .append("<table border=\"1\">");
 
-        File testDataSrcResults = new File(prop.getProperty("testDataLocationResults"));
+//        File testDataSrcResults = new File(prop.getProperty("testDataLocationResults"));
         //FileInputStream testDataResults = new FileInputStream(testDataSrcResults);
         // FileOutputStream testDataResults = new FileOutputStream(testDataSrcResults);
-       // XSSFWorkbook wbResults = null;
+        // XSSFWorkbook wbResults = null;
 
         /*try {
             wbResults = new XSSFWorkbook(testDataSrcResults);
@@ -117,6 +113,14 @@ public class screenShotTest {
         String templateName;
         Ads Ad1 = new Ads(driver);
 
+        double countPassAd1 = 0;
+        double countPassAd2 = 0;
+        double countPassAd3 = 0;
+
+        double countFailAd1 = 0;
+        double countFailAd2 = 0;
+        double countFailAd3 = 0;
+
         //  FileOutputStream fileOut = new FileOutputStream(prop.getProperty("testDataLocationResults"));
         System.out.println("5");
 
@@ -126,25 +130,28 @@ public class screenShotTest {
                 .append("<td> Top Banner</td>")
                 .append("<td> Perfect Market Module</td>")
                 .append("<td> Screenshot </td>")
+                .append("<td> Seconds </td>")
                 .append("</th>");
 
         System.out.println("Physical Number of Rows:" + (sheet1.getPhysicalNumberOfRows()-1));
-        for (int i = 1; i < 30; i++) {
+        for (int i = 1; i < sheet1.getPhysicalNumberOfRows()-1; i++) {
 
             ID = sheet1.getRow(i).getCell(1).getStringCellValue();
-
+            long startTime = System.currentTimeMillis();
             if (prop.getProperty("device").equals("desktop")) {
+
                 driver.get(URL + "/id/" + ID);
             } else {
                 driver.get(URL + "/id/" + ID + "?$DEVICE$=mobile-touch");
             }
 
+            long endTime = System.currentTimeMillis();
             Thread.sleep(5000);
 
             // Screenshot of File
             File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-            File scrFile1 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-            File scrFile2 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+         //  File scrFile1 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+          //  File scrFile2 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 
             // Copy folder to new Path
 
@@ -161,55 +168,83 @@ public class screenShotTest {
             result.append("<tr>")
                     .append("<td><a href="+ URL + "/id/" + ID+ ">" + templateName +" </a></td>")
                     .append("<td>"+ ID+" </td>");
-            try {
 
-                adVerify(Ad1.getTopBanner(), scrFile, newPath, templateName);
-                writePass(result,templateName,ID);
-
-            } catch (Exception e) {
-                writeFailed(result,templateName,ID);
-            }
 
             try {
 
-                adVerify(Ad1.getFlexAd(), scrFile1, newPath, templateName);
+                adVerify(Ad1.getTopBanner(), newPath, templateName);
                 writePass(result,templateName,ID);
+                countPassAd1++;
 
             } catch (Exception e) {
                 writeFailed(result,templateName,ID);
+                countFailAd1++;
+
             }
 
             try {
-              //  driver.switchTo().frame(Ad1.getMarketsAdFrame());
-                adVerify(Ad1.getMarketsAdFrame(), scrFile2, newPath, templateName);
-             //   driver.switchTo().defaultContent();
+
+                adVerify(Ad1.getFlexAd(), newPath, templateName);
                 writePass(result,templateName,ID);
+                countPassAd2++;
+
+
             } catch (Exception e) {
                 writeFailed(result,templateName,ID);
+                countFailAd2++;
             }
 
-            result.append("<td><a href="+newPath+ "/" +templateName+ "/> Link </a></td>")
-                    .append("</tr>");
+            try {
+                //  driver.switchTo().frame(Ad1.getMarketsAdFrame());
+                adVerify(Ad1.getMarketsAdFrame(), newPath, templateName);
+                //   driver.switchTo().defaultContent();
+                writePass(result,templateName,ID);
+                countPassAd3++;
+            } catch (Exception e) {
+                writeFailed(result,templateName,ID);
+                countFailAd3++;
             }
 
-            result.append("</table>")
-                    .append("</html>");
 
+            long totalTime = (endTime - startTime) / 1000;
 
+            System.out.println("Total Page Load Time: " + totalTime + "milliseconds");
 
-            //fileOut.close();
-            // Open the folder of screenshots
-            Desktop.getDesktop().open(newPath);
+                    result.append("<td><a href="+newPath+ "/" +templateName+ "/> Link </a></td>")
+                            .append("<td>" + totalTime + "</td>")
+                            .append("</tr>");
         }
 
 
-    public static void adVerify(WebElement ad1,File scrFile1, File newPath, String templateName ) throws IOException {
+        result.append("<tr>")
+                .append("<td> Total </td>")
+                .append("<td> Results </td>")
+                .append("<td>" +(int)(countPassAd1/(countFailAd1+countPassAd1) *100) + "% </td>")
+                .append("<td>" + (int) (countPassAd2 / (countFailAd2 + countPassAd2) * 100) + "% </td>")
+                .append("<td>" + (int)(countPassAd3 / (countFailAd2 + countPassAd3) *100) + "% </td>")
+                        .append("</tr>");
+
+
+
+        result.append("</table>")
+                .append("</html>");
+
+
+
+        //fileOut.close();
+        // Open the folder of screenshots
+        Desktop.getDesktop().open(newPath);
+    }
+
+
+    public static void adVerify(WebElement ad1, File newPath, String templateName ) throws IOException {
         if (ad1.isDisplayed()) {
             System.out.println("1");
             Point point = ad1.getLocation();
 //Get width and height of the element
             System.out.println("2");
-            BufferedImage fullImg = ImageIO.read(scrFile1);
+
+           /* BufferedImage fullImg = ImageIO.read(scrFile1);
             int eleWidth = ad1.getSize().getWidth();
             int eleHeight = ad1.getSize().getHeight();
 //Crop the entire page screenshot to get only element screenshot
@@ -219,15 +254,18 @@ public class screenShotTest {
             ImageIO.write(eleScreenshot1, "png", scrFile1);
 //Copy the element screenshot to disk
             System.out.println("4");
+            */
             String adName = ad1.getAttribute("id");
-            FileUtils.copyFile(scrFile1, new File(newPath + "/" + templateName + "/" + templateName+ " " + adName + ".png"));
+
+         //   FileUtils.copyFile(scrFile1, new File(newPath + "/" + templateName + "/" + templateName+ " " + adName + ".png"));
+
             System.out.println("Success displayed ad: " + adName);
         }
     }
 
     public static Properties loadProp() throws IOException {
 
-        File file = new File("/home/fortegs/IdeaProjects/java1/src/screenConfig.prop");
+        File file = new File("C:\\Users\\~206109371\\Documents\\My Downloads\\java1\\src\\screenConfig.prop");
         FileInputStream fileInput = new FileInputStream(file);
         Properties prop = new Properties();
         prop.load(fileInput);
@@ -238,7 +276,7 @@ public class screenShotTest {
 
     public static void writePass( StringBuilder result, String templateName, String ID){
 
-            result
+        result
                 .append("<td style=\"background-color:#00FF00;\"> Pass </td>");
         System.out.println("Ad Found: Success");
     }
@@ -253,15 +291,12 @@ public class screenShotTest {
     @AfterClass
     public static void tearDown() throws IOException {
 
-        BufferedWriter bwr = new BufferedWriter(new FileWriter(new File("/home/fortegs/Results/results.html")));
+        BufferedWriter bwr = new BufferedWriter(new FileWriter(new File("C:\\Users\\206436732\\Results\\stg-ec02\\results.html")));
         bwr.write(result.toString());
         bwr.flush();
         bwr.close();
         //Comments
         driver.quit();
     }
-
-
-   
 
 }
