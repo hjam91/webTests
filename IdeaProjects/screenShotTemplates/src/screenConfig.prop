@@ -1,0 +1,7 @@
+URL=http://cnbc.com
+browser=chrome
+device=desktop
+testDataLocation=/home/chrx/IdeaProjects/screenShotTemplates/src/data.xlsx
+chromeDriverLocation= /home/chrx/chromedriver
+IEDriverLocation=
+ScreenshotLocation=/home/chrx/resultScreenshots/

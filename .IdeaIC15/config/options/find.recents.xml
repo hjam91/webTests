@@ -1,0 +1,10 @@
+<application>
+  <component name="FindRecents">
+    <findStrings>
+      <find>get</find>
+      <find>.get</find>
+      <find>driver.get</find>
+      <find>/id</find>
+    </findStrings>
+  </component>
+</application>
