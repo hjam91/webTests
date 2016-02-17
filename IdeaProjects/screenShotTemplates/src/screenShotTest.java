@@ -7,10 +7,13 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -57,11 +60,17 @@ public class screenShotTest {
 
         } else if (BROWSER.equals("IE")) {
 
-            driver = new InternetExplorerDriver();
+            System.setProperty("webdriver.ie.driver", "C:\\Users\\206436732\\IEDriverServer.exe");
+            DesiredCapabilities caps = DesiredCapabilities.internetExplorer();
+            caps.setCapability("ignoreZoomSetting", true);
+            driver = new InternetExplorerDriver(caps);
 
-        } else
-            driver = new FirefoxDriver();
+        } else {
 
+            FirefoxProfile firefoxProfile = new FirefoxProfile();
+            firefoxProfile.setPreference("media.volume_scale", "0.0");
+            driver = new FirefoxDriver(firefoxProfile);
+        }
         driver.manage().timeouts().implicitlyWait(2000, TimeUnit.MILLISECONDS);
         //driver.manage().timeouts().pageLoadTimeout(15, TimeUnit.SECONDS);
 
@@ -91,7 +100,7 @@ public class screenShotTest {
         result = new StringBuilder();
         result.append("<html>")
                 .append("<head><title> MPS3 Ad Testing Results </title></head>")
-                .append("<h1>MPS3 Ad Testing Results </h1>")
+                .append("<h1>MPS3 Ad Testing Results " +"("+prop.getProperty("browser") +  ")</h1>")
                 .append("<table border=\"1\">");
 
 //        File testDataSrcResults = new File(prop.getProperty("testDataLocationResults"));
@@ -116,10 +125,16 @@ public class screenShotTest {
         double countPassAd1 = 0;
         double countPassAd2 = 0;
         double countPassAd3 = 0;
+        double countPassAd4= 0;
+        double countPassAd5 = 0;
+        double countPassAd6 = 0;
 
         double countFailAd1 = 0;
         double countFailAd2 = 0;
         double countFailAd3 = 0;
+        double countFailAd4 = 0;
+        double countFailAd5 = 0;
+        double countFailAd6 = 0;
 
         //  FileOutputStream fileOut = new FileOutputStream(prop.getProperty("testDataLocationResults"));
         System.out.println("5");
@@ -129,21 +144,45 @@ public class screenShotTest {
                 .append("<td> Flex Ad </td>")
                 .append("<td> Top Banner</td>")
                 .append("<td> Perfect Market Module</td>")
+                .append("<td> Xfinity Upsell</td>")
+                .append("<td> Badge A</td>")
+                .append("<td> Switch Link </td>")
                 .append("<td> Screenshot </td>")
                 .append("<td> Seconds </td>")
                 .append("</th>");
 
         System.out.println("Physical Number of Rows:" + (sheet1.getPhysicalNumberOfRows()-1));
-        for (int i = 1; i < sheet1.getPhysicalNumberOfRows()-1; i++) {
+        for (int i = 1; i <  /*(sheet1.getPhysicalNumberOfRows()-1)*/ 10 ; i++) {
 
             ID = sheet1.getRow(i).getCell(1).getStringCellValue();
             long startTime = System.currentTimeMillis();
-            if (prop.getProperty("device").equals("desktop")) {
 
+            if (prop.getProperty("device").equals("desktop")) {
                 driver.get(URL + "/id/" + ID);
-            } else {
-                driver.get(URL + "/id/" + ID + "?$DEVICE$=mobile-touch");
+
+                if (prop.getProperty("X").equals("xfinity")) {
+                    if (i < 2) {
+                        Cookie newCookie = new Cookie("active_partner_exp", "xfinity", "/");
+                        driver.manage().addCookie(newCookie);
+                        driver.navigate().refresh();
+                        Thread.sleep(3000);
+                    }
+
+                }
             }
+
+            else if (prop.getProperty("device").equals("mobile")) {
+                driver.get(URL + "/id/" + ID + "?$DEVICE$=mobile-touch");
+             }
+
+            else if (prop.getProperty("device").equals("tablet")) {
+                driver.get(URL + "/id/" + ID + "?$DEVICE$=mobile-tablet");
+            }
+
+            else if (prop.getProperty("device").equals("android")) {
+                driver.get(URL + "/id/" + ID + "?$DEVICE$=mobile-tablet");
+            }
+
 
             long endTime = System.currentTimeMillis();
             Thread.sleep(5000);
@@ -196,7 +235,8 @@ public class screenShotTest {
 
             try {
                 //  driver.switchTo().frame(Ad1.getMarketsAdFrame());
-                adVerify(Ad1.getMarketsAdFrame(), newPath, templateName);
+                WebDriverWait wait = new WebDriverWait(driver, 20);
+                adVerify(wait.until(ExpectedConditions.elementToBeClickable(Ad1.getMarketsAdFrame())), newPath, templateName);
                 //   driver.switchTo().defaultContent();
                 writePass(result,templateName,ID);
                 countPassAd3++;
@@ -204,6 +244,45 @@ public class screenShotTest {
                 writeFailed(result,templateName,ID);
                 countFailAd3++;
             }
+
+            try {
+                //  driver.switchTo().frame(Ad1.getMarketsAdFrame());
+                adVerify(Ad1.getXfinityUpsell(), newPath, templateName);
+                //   driver.switchTo().defaultContent();
+                writePass(result,templateName,ID);
+                countPassAd4++;
+
+            } catch (Exception e) {
+                writeFailed(result,templateName,ID);
+                countFailAd4++;
+            }
+
+            try {
+                //  driver.switchTo().frame(Ad1.getMarketsAdFrame());
+                adVerify(Ad1.getBadge_A(), newPath, templateName);
+                //   driver.switchTo().defaultContent();
+                writePass(result,templateName,ID);
+                countPassAd5++;
+
+            } catch (Exception e) {
+                writeFailed(result,templateName,ID);
+                countFailAd5++;
+            }
+
+            try {
+                //  driver.switchTo().frame(Ad1.getMarketsAdFrame());
+                adVerify(Ad1.getSwtichDevices(), newPath, templateName);
+                //   driver.switchTo().defaultContent();
+                writePass(result,templateName,ID);
+                countPassAd6++;
+
+            } catch (Exception e) {
+                writeFailed(result,templateName,ID);
+                countFailAd6++;
+            }
+
+
+
 
 
             long totalTime = (endTime - startTime) / 1000;
@@ -221,8 +300,11 @@ public class screenShotTest {
                 .append("<td> Results </td>")
                 .append("<td>" +(int)(countPassAd1/(countFailAd1+countPassAd1) *100) + "% </td>")
                 .append("<td>" + (int) (countPassAd2 / (countFailAd2 + countPassAd2) * 100) + "% </td>")
-                .append("<td>" + (int)(countPassAd3 / (countFailAd2 + countPassAd3) *100) + "% </td>")
-                        .append("</tr>");
+                .append("<td>" + (int)(countPassAd3 / (countFailAd3 + countPassAd3) *100) + "% </td>")
+                .append("<td>" + (int) (countPassAd4 / (countFailAd4 + countPassAd4) * 100) + "% </td>")
+                .append("<td>" + (int)(countPassAd5 / (countFailAd5 + countPassAd5) *100) + "% </td>")
+                .append("<td>" + (int)(countPassAd6 / (countFailAd6 + countPassAd6) *100) + "% </td>")
+                .append("</tr>");
 
 
 
@@ -233,7 +315,7 @@ public class screenShotTest {
 
         //fileOut.close();
         // Open the folder of screenshots
-        Desktop.getDesktop().open(newPath);
+
     }
 
 
@@ -291,12 +373,15 @@ public class screenShotTest {
     @AfterClass
     public static void tearDown() throws IOException {
 
-        BufferedWriter bwr = new BufferedWriter(new FileWriter(new File("C:\\Users\\206436732\\Results\\stg-ec02\\results.html")));
+        BufferedWriter bwr = new BufferedWriter(new FileWriter(new File(prop.getProperty("results"))));
         bwr.write(result.toString());
         bwr.flush();
         bwr.close();
         //Comments
+        File Results = new File(prop.getProperty("results"));
         driver.quit();
+        Desktop.getDesktop().open(Results);
+
     }
 
 }
